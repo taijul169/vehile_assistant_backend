@@ -9,6 +9,7 @@ const Group =  db.groups
 const multer  = require('multer')
 const path =  require('path')
 
+
 // register user functionality-------------------------------------
 const register = async( req,res, next) =>{
     try {
@@ -169,56 +170,14 @@ const upload = multer({
 }).single('image')
 
 
-// const send code
-const sendCode  = async (req,res)=>{
-    try {
-        const sec_code = await Code.create({
-            phone:req.body.phone,
-            name:req.body.firstname
-        })
-        res.status(StatusCodes.CREATED).json({sec_code,code:201,msg:'success'})
-    } catch (error) {
-        res.status(StatusCodes.BAD_REQUEST).json({code:400,msg:'failed'})
-    }
- 
+// get all groups for admin panel
+const getallgroups= async (req,res)=>{
+    const groups =  await Group.findAll()
+    res.status(StatusCodes.OK).json({groups,code:200,msg:'success'})
 }
 
-// verify code
-const verifyCode = async (req,res)=>{
-  try {
-      const exist = await Code.findOne({where:{phone:req.body.phone,code:req.body.code}})
-      console.log("exist:",exist)
-      if(!exist){
-        res.status(StatusCodes.BAD_REQUEST).json({code:400,msg:'failed'})
-      }else{
-        const updatedData =  await Code.update({
-            status:'Verified'
-        },{where:{id:exist.id}})  
-        res.status(StatusCodes.OK).json({code:200,msg:'success'})
-        
-      }
-  } catch (error) {
-      console.log("error",error)
-      res.status(StatusCodes.BAD_REQUEST).json({code:400,msg:'failed'})
-  }
+const getsingleGroup =  async (req,res)=>{
+    const group =  await Group.findOne({where:{id:req.params.id}})
+    res.status(StatusCodes.OK).json({group,code:200,msg:'success'})
 }
-
-const getSingleUser = async(req,res)=>{
-  const user =  await User.findOne({where:{id:req.params.id}})
-  user.image = `${req.protocol+"://"+req.headers.host}/${user.image}`
-  res.status(StatusCodes.OK).json(user)
-}
-
-// get all codes
-
-const getAllcodes =  async(req,res)=>{
-    const codes = await Code.findAll({
-        order: [
-            ['id', 'DESC'],
-           
-        ],
-    })
-
-    res.status(StatusCodes.OK).json(codes)
-}
-module.exports = { register, login, updateUser,upload,sendCode,verifyCode,getSingleUser,getAllcodes}
+module.exports = { register, login, updateUser,upload,getallgroups,getsingleGroup}

@@ -24,11 +24,12 @@ const authrouter = require('./routes/authRoutes.js')
 
 const authadmin = require('./routes/authadminRoutes.js')
 const authgroup = require('./routes/groupRoutes.js')
-
+const requests = require('./routes/requestRoutes.js')
 
 app.use('/api/auth',authrouter)
 app.use('/api/admin',authadmin)
 app.use('/api/group',authgroup)
+app.use('/api/request',requests)
 
 
 // static image folder
