@@ -55,6 +55,10 @@ module.exports =  (sequalize, DataTypes) =>{
         firebasetoken:{
             type:DataTypes.TEXT,
             defaultValue:null
+        },
+        distance:{
+            type:DataTypes.STRING,
+            defaultValue:null
         }
 
 

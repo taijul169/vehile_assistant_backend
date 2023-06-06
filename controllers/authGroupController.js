@@ -16,7 +16,7 @@ const register = async( req,res, next) =>{
         const {firstname, email, password,lastname,phone,gender,dateofbirth,address,lat,long } = req.body
         console.log("req.body",req.body)
 
-        if(!firstname || !phone || !password ){
+        if(!firstname || !phone || !password || !email ){
             res.status(StatusCodes.BAD_REQUEST).json({ 
                 msg:"Please Provide all values",
                 code:400
@@ -171,13 +171,76 @@ const upload = multer({
 
 
 // get all groups for admin panel
-const getallgroups= async (req,res)=>{
-    const groups =  await Group.findAll()
-    res.status(StatusCodes.OK).json({groups,code:200,msg:'success'})
+const getallgroupsbyrequest= async (req,res)=>{
+    const customer_lat = req.query.lat
+    const customer_lng = req.query.lng
+    // let location={
+    //     lat:23.802490764266548,
+    //     lon:90.39176398501331
+    // }
+    // get availble group and their location
+
+    //------------------------------ distance finding function start-----------------------
+      function calculateDistance(lat1,lon1, lat2, lon2) {
+        const earthRadius = 6371; // Radius of the Earth in kilometers
+      
+        // Convert latitude and longitude from degrees to radians
+        const lat1Rad = toRadians(lat1);
+        const lon1Rad = toRadians(lon1);
+        const lat2Rad = toRadians(lat2);
+        const lon2Rad = toRadians(lon2);
+      
+        // Haversine formula
+        const deltaLat = lat2Rad - lat1Rad;
+        const deltaLon = lon2Rad - lon1Rad;
+        const a =
+          Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+          Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+          Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = earthRadius * c;
+      
+        return distance;
+      }
+      
+      function toRadians(degrees) {
+        return degrees * (Math.PI / 180);
+      }
+      
+      // Example usage
+      const lat1 = 40.7128; // Latitude of point 1
+      const lon1 = -74.0060; // Longitude of point 1
+      //const lat2 = 34.0522; // Latitude of point 2
+     // const lon2 = -118.2437; // Longitude of point 2
+      
+      //const distance = calculateDistance(lat1, lon1, lat2, lon2);
+     // console.log('Distance:', distance.toFixed(2), 'km');
+       //------------------------------ distance finding function end-----------------------  
+       if(!customer_lat || !customer_lng){
+        res.status(StatusCodes.BAD_REQUEST).json({code:400,msg:'failed!! Customer location Required'})
+       }else{
+        const groups =  await Group.findAll({where:{active:true}})
+    
+        groups.map((item)=>{
+            
+            item.distance  = calculateDistance(customer_lat,customer_lng,item.lat,item.long).toFixed(2) 
+        })
+       // console.log("groups",groups)
+        res.status(StatusCodes.OK).json({groups,code:200,msg:'success'})
+       }
+    
 }
+
+
 
 const getsingleGroup =  async (req,res)=>{
     const group =  await Group.findOne({where:{id:req.params.id}})
     res.status(StatusCodes.OK).json({group,code:200,msg:'success'})
 }
-module.exports = { register, login, updateUser,upload,getallgroups,getsingleGroup}
+
+
+const getallgroups =  async (req,res)=>{
+    const group =  await Group.findOne()
+    res.status(StatusCodes.OK).json({group,code:200,msg:'success'})
+}
+module.exports = { register, login, updateUser,upload,getallgroupsbyrequest,getsingleGroup,getallgroups}
