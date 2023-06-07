@@ -57,6 +57,10 @@ module.exports =  (sequalize, DataTypes) =>{
         isviewed:{
             type:DataTypes.BOOLEAN,
             defaultValue:false
+        },
+        isassigned:{
+            type:DataTypes.BOOLEAN,
+            defaultValue:false
         }
     })
     

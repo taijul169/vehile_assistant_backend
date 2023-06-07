@@ -31,26 +31,28 @@ const upload  =  multer({
 const register = async( req,res, next) =>{
         const {firstname, email, password,lastname,phone,gender,dateofbirth,address } = req.body
 
-        if(!firstname || !phone  || !password){
+        if(!firstname || !email  || !password){
             res.status(StatusCodes.BAD_REQUEST).json({ 
-                msg:"Please Provide all values"
+                msg:"Please Provide all values",
+                code:409
              })
+        }else{
+            const userAlreadyExists  = await Admin.findOne({where:{email:email}})
+            if(userAlreadyExists){
+                res.status(StatusCodes.BAD_REQUEST).json({ 
+                   msg:"User already exist!!",
+                   code:400
+                })
+            }else{
+                const admin =  await  Admin.create({firstname, email, password,lastname,phone,gender,dateofbirth,address })
+    
+                const token =   admin.createJWT()
+                res.status(StatusCodes.CREATED).json({admin,token})
+            }
+            
         }
-        if(phone.length !=11){
-            res.status(StatusCodes.BAD_REQUEST).json({ 
-                msg:"Invalid Phone Number"
-             })
-        }
-        const userAlreadyExists  = await Admin.findOne({where:{phone:phone}})
-        if(userAlreadyExists){
-            res.status(StatusCodes.BAD_REQUEST).json({ 
-               msg:"User already exist!!"
-            })
-        }
-        const admin =  await  Admin.create({firstname, email, password,lastname,phone,gender,dateofbirth,address })
-
-        const token =   admin.createJWT()
-        res.status(StatusCodes.CREATED).json({admin,token})
+        
+       
 }
 
 
@@ -61,27 +63,32 @@ const login = async( req,res) =>{
         console.log("req body:",req.body)
         if(!email || !password){
             res.status(StatusCodes.BAD_REQUEST).json({ 
-                msg:"Please Provide all values"
+                msg:"Please Provide all values",
+                code:400
           })
+        }else{
+            const admin  = await Admin.findOne({where:{email,password}})
+            if(!admin){
+                res.status(StatusCodes.BAD_REQUEST).json({ 
+                    msg:"Invalid Credentials",
+                    code:401
+              })
+              
+            }else{
+                const token = admin.createJWT()
+                const tokenset =  await Admin.update({jwtoken :token},{where:{id:admin.id}})
+                admin.jwtoken = token
+                admin.password = undefined
+                res.status(StatusCodes.OK).json({admin,token,code:200})
+            }
         }
-        const admin  = await Admin.findOne({where:{email,password}})
-        if(!admin){
-            res.status(StatusCodes.BAD_REQUEST).json({ 
-                msg:"Invalid Credentials"
-          })
-          
-        }
+       
         // const isPasswordCorrect  =  await admin.comparePassword(password)
         // if(!isPasswordCorrect){
         //     throw new UnAuthenticatedError('Invalid Credentials')
         // }
 
        
-        const token = admin.createJWT()
-        const tokenset =  await Admin.update({jwtoken :token},{where:{id:admin.id}})
-        admin.jwtoken = token
-        admin.password = undefined
-        res.status(StatusCodes.OK).json({admin,token})
     } catch (error) {
         res.send(error)
         console.log("error",error)
@@ -138,12 +145,15 @@ const updateadmin = async (req,res) =>{
 
 const authenticateAdmin =  async (req,res)=>{
     try {
-        console.log("token",req.body.token)
-        const AdminData =  await Admin.findOne({where: {jwtoken:`${req.body.token}`}})
+        console.log("token",req.query.token)
+        const AdminData =  await Admin.findOne({where: {jwtoken:`${req.query.token}`}})
         if(AdminData){
             AdminData.image = `${req.protocol+"://"+req.headers.host}/${AdminData.image}`
+            res.status(200).send({AdminData,code:200,msg:'success'})
+        }else{
+            res.status(404).send({msg:'Data not found!!',code:404})
         }
-        res.status(200).send(AdminData)
+        
     } catch (error) {
         console.log(error)
         res.status(404).send({error})

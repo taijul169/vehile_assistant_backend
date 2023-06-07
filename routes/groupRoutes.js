@@ -8,7 +8,7 @@ const router =  express.Router()
 //     max:10,
 //     message:'Too many requests from this IP address,please try again after 15 minutes'
 // })
-const { register, login, updateUser,upload,getallgroups,getsingleGroup,getallgroupsbyrequest}  = require('../controllers/authGroupController') 
+const { register, login, updateUser,upload,getallgroups,getsingleGroup,getallgroupsbyrequest,authenticateGroup}  = require('../controllers/authGroupController') 
 const  authenticateUser =  require('../middleware/auth') 
 
 router.route('/register').post(upload,register);
@@ -17,5 +17,7 @@ router.route('/updateuser/:id').put(upload, updateUser);
 router.route('/getallgroups').get(getallgroups)
 router.route('/getallgroupsbyrequest').get(getallgroupsbyrequest)
 router.route('/getsinglegroup/:id').get(getsingleGroup)
+router.route('/authenticategroup').get(authenticateGroup)
+
 module.exports =  router
 

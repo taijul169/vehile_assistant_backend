@@ -5,6 +5,7 @@ const {StatusCodes} = require('http-status-codes')
 const User =db.users
 const Code = db.codes
 const Group =  db.groups
+const Request =  db.requsts
 // image upload
 const multer  = require('multer')
 const path =  require('path')
@@ -76,11 +77,8 @@ const login = async( req,res) =>{
               })
               
             }else{
-               // const isPasswordCorrect  =  await user.comparePassword(password)
-            // if(!isPasswordCorrect){
-            //     throw new UnAuthenticatedError('Invalid Credentials')
-            // }
                 const token = user.createJWT()
+                const tokenset =  await Group.update({jwtoken :token},{where:{id:user.id}})
                 user.password = undefined
                 res.status(StatusCodes.OK).json({user,token,code:200})
             }
@@ -174,6 +172,7 @@ const upload = multer({
 const getallgroupsbyrequest= async (req,res)=>{
     const customer_lat = req.query.lat
     const customer_lng = req.query.lng
+    const requestID = req.query.id
     // let location={
     //     lat:23.802490764266548,
     //     lon:90.39176398501331
@@ -207,14 +206,7 @@ const getallgroupsbyrequest= async (req,res)=>{
         return degrees * (Math.PI / 180);
       }
       
-      // Example usage
-      const lat1 = 40.7128; // Latitude of point 1
-      const lon1 = -74.0060; // Longitude of point 1
-      //const lat2 = 34.0522; // Latitude of point 2
-     // const lon2 = -118.2437; // Longitude of point 2
-      
-      //const distance = calculateDistance(lat1, lon1, lat2, lon2);
-     // console.log('Distance:', distance.toFixed(2), 'km');
+     
        //------------------------------ distance finding function end-----------------------  
        if(!customer_lat || !customer_lng){
         res.status(StatusCodes.BAD_REQUEST).json({code:400,msg:'failed!! Customer location Required'})
@@ -225,8 +217,14 @@ const getallgroupsbyrequest= async (req,res)=>{
             
             item.distance  = calculateDistance(customer_lat,customer_lng,item.lat,item.long).toFixed(2) 
         })
+        let request;
+        if(requestID){
+            const a = await Request.findOne({where:{id:requestID}})
+            request= a
+        }
+       
        // console.log("groups",groups)
-        res.status(StatusCodes.OK).json({groups,code:200,msg:'success'})
+        res.status(StatusCodes.OK).json({groups,request,code:200,msg:'success'})
        }
     
 }
@@ -240,7 +238,26 @@ const getsingleGroup =  async (req,res)=>{
 
 
 const getallgroups =  async (req,res)=>{
-    const group =  await Group.findOne()
-    res.status(StatusCodes.OK).json({group,code:200,msg:'success'})
+    const groups =  await Group.findAll()
+    res.status(StatusCodes.OK).json({groups,code:200,msg:'success'})
 }
-module.exports = { register, login, updateUser,upload,getallgroupsbyrequest,getsingleGroup,getallgroups}
+
+
+const authenticateGroup =  async (req,res)=>{
+    try {
+        console.log("token",req.query.token)
+        const GroupData =  await Group.findOne({where: {jwtoken:`${req.query.token}`}})
+        if(GroupData){
+            GroupData.image = `${req.protocol+"://"+req.headers.host}/${GroupData.image}`
+            res.status(200).send({GroupData,code:200,msg:'success'})
+        }else{
+            res.status(404).send({msg:'Data not found!!',code:404})
+        }
+        
+    } catch (error) {
+        console.log(error)
+        res.status(404).send({error})
+    }
+   
+}
+module.exports = { register, login, updateUser,upload,getallgroupsbyrequest,getsingleGroup,getallgroups,authenticateGroup}

@@ -14,6 +14,6 @@ const  authenticateUser =  require('../middleware/auth')
 router.route('/register').post(register);
 router.route('/login').post(login);
 router.route('/updateUser/:id').put(upload,updateadmin);
-router.route('/adminauthenticate').post(authenticateAdmin);
+router.route('/adminauthenticate').get(authenticateAdmin);
 module.exports =  router
 

@@ -10,7 +10,7 @@ const Request = db.requsts
 // register user functionality-------------------------------------
 const register = async( req,res, next) =>{
     try {
-        const {customer_phone, customer_long,customer_lat,service_type ,customer_name} = req.body
+        const {customer_phone, customer_long,customer_lat,service_type ,customer_name,customer_address} = req.body
         console.log("req.body",req.body)
 
         if(!customer_phone || !customer_lat || !customer_long ){
@@ -19,7 +19,7 @@ const register = async( req,res, next) =>{
                 code:400
              })
         }else{
-              const request =  await Request.create({customer_phone, customer_long,customer_lat,service_type,customer_name})
+              const request =  await Request.create({customer_phone, customer_long,customer_lat,service_type,customer_name,customer_address})
               res.status(StatusCodes.CREATED).json({request,code:201,msg:'success'})
             }
             
@@ -34,7 +34,9 @@ const register = async( req,res, next) =>{
 // get all request 
 const getAllRequest = async (req,res)=>{
     try {
-        const requests =  await Request.findAll()
+        const requests =  await Request.findAll({
+            order:[['id','DESC'],]
+        })
         res.status(StatusCodes.OK).json({requests,code:200,msg:'success'})
     } catch (error) {
         res.status(StatusCodes.NOT_FOUND).json({code:404,msg:'Failed'})
@@ -69,4 +71,28 @@ const assignGroupToRequest =  async (req,res)=>{
 }
 
 
-module.exports = { register,assignGroupToRequest,getAllrequestsBystatusGROUPID,getAllrequestsBystatus,getAllRequest}
+// get all requests by status and group id
+const getallassignedRequestbyGROUPID =  async (req,res)=>{
+    try {
+        const requests =  await Request.findAll({where:{isassigned:true,group_id:req.params.group_id,status:'Pending'}})
+        res.status(StatusCodes.OK).json({requests,code:200,msg:'success'})
+    } catch (error) {
+        res.status(StatusCodes.NOT_FOUND).json({code:404,msg:'Failed'})
+    }
+}
+
+// get single request by request id
+const getsinglerquest =  async (req,res)=>{
+    try {
+        const request =  await Request.findOne({where:{id:req.params.id}})
+        res.status(StatusCodes.OK).json({request,code:200,msg:'success'})
+    } catch (error) {
+        res.status(StatusCodes.NOT_FOUND).json({code:404,msg:'Failed'})
+    }
+}
+
+
+
+
+
+module.exports = { register,assignGroupToRequest,getAllrequestsBystatusGROUPID,getAllrequestsBystatus,getAllRequest,getallassignedRequestbyGROUPID,getsinglerquest}
