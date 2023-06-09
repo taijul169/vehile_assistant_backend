@@ -51,7 +51,16 @@ db.sequelize.sync({
 
 // one to one relationship between shipping address and order
 
+// one to many relationship between request and group
+db.groups.hasMany(db.requsts,{
+    foreignKey:'group_id',
+    as:'request'
+})
 
+db.requsts.belongsTo(db.groups,{
+    foreignKey:'group_id',
+    as:'group'
+})
 
 // 1 to many Relation
 

@@ -59,6 +59,10 @@ module.exports =  (sequalize, DataTypes) =>{
         distance:{
             type:DataTypes.STRING,
             defaultValue:null
+        },
+        currentstatus:{
+            type:DataTypes.STRING,
+            defaultValue:'available'
         }
 
 

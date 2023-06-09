@@ -211,7 +211,7 @@ const getallgroupsbyrequest= async (req,res)=>{
        if(!customer_lat || !customer_lng){
         res.status(StatusCodes.BAD_REQUEST).json({code:400,msg:'failed!! Customer location Required'})
        }else{
-        const groups =  await Group.findAll({where:{active:true}})
+        const groups =  await Group.findAll({where:{active:true,currentstatus:'available'}})
     
         groups.map((item)=>{
             

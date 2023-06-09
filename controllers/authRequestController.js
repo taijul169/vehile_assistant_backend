@@ -63,18 +63,48 @@ const getAllrequestsBystatusGROUPID =  async (req,res)=>{
 
 const assignGroupToRequest =  async (req,res)=>{
     try {
-        const assign = await Request.update({group_id:req.params.group_id},{where:{id:req.params.id}})
+        const assign = await Request.update({group_id:req.params.group_id,isviewed:true, isassigned:true,status:'Sentrequest'},{where:{id:req.params.id}})
         res.status(StatusCodes.OK).json({assign})
     } catch (error) {
         res.status(StatusCodes.BAD_REQUEST.json({error}))
     }
+
+    
+}
+
+const acceptOrDeclineRequest =  async (req,res)=>{
+    try {
+        if(req.params.status == 'accept'){
+            const assign = await Request.update({group_id:req.params.group_id,isviewed:true, isassigned:true,status:'Accepted'},{where:{id:req.params.id}})
+            res.status(StatusCodes.OK).json({assign})
+        }
+        if(req.params.status == 'decline'){
+            const assign = await Request.update({group_id:req.params.group_id,isviewed:true, isassigned:true,status:'Declined'},{where:{id:req.params.id}})
+            res.status(StatusCodes.OK).json({assign})
+        }
+        
+    } catch (error) {
+        res.status(StatusCodes.BAD_REQUEST.json({error}))
+    }
+
+    
 }
 
 
 // get all requests by status and group id
-const getallassignedRequestbyGROUPID =  async (req,res)=>{
+const getallassignedRequestbyGROUPIDPending =  async (req,res)=>{
     try {
         const requests =  await Request.findAll({where:{isassigned:true,group_id:req.params.group_id,status:'Pending'}})
+        res.status(StatusCodes.OK).json({requests,code:200,msg:'success'})
+    } catch (error) {
+        res.status(StatusCodes.NOT_FOUND).json({code:404,msg:'Failed'})
+    }
+}
+
+// get all requests by status and group id
+const getallassignedRequestbyGROUPID =  async (req,res)=>{
+    try {
+        const requests =  await Request.findAll({where:{isassigned:true,group_id:req.params.group_id}})
         res.status(StatusCodes.OK).json({requests,code:200,msg:'success'})
     } catch (error) {
         res.status(StatusCodes.NOT_FOUND).json({code:404,msg:'Failed'})
@@ -92,7 +122,31 @@ const getsinglerquest =  async (req,res)=>{
 }
 
 
+const getsingleassignedRequest  = async (req,res)=>{
+    try {
+        const request =  await Request.findOne({where:{id:req.params.id},
+            include:[
+                {
+                    model:Group,
+                    as:'group',
+                    required:false,
+                    // attributes: {
+                    //     include: [
+                    //       [sequelize.fn('AVG', sequelize.col('review.rating')), 'rating']
+                    //     ],
+                    //   },
+                },
+            ]
+        })
+
+        res.status(StatusCodes.OK).json({request,code:200,msg:'success'})
+    } catch (error) {
+        res.status(StatusCodes.NOT_FOUND).json({code:404,msg:'Failed'})
+    }
+}
 
 
 
-module.exports = { register,assignGroupToRequest,getAllrequestsBystatusGROUPID,getAllrequestsBystatus,getAllRequest,getallassignedRequestbyGROUPID,getsinglerquest}
+
+
+module.exports = { register,assignGroupToRequest,getAllrequestsBystatusGROUPID,getAllrequestsBystatus,getAllRequest,getallassignedRequestbyGROUPID,getsinglerquest,getsingleassignedRequest,acceptOrDeclineRequest,getallassignedRequestbyGROUPIDPending}
